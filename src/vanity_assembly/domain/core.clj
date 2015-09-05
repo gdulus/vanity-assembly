@@ -1,6 +1,6 @@
 (ns vanity-assembly.domain.core
-  (:require
-    [vanity-assembly.core.neo4j :refer [with-connection execute-query]]))
+    (:require [vanity-assembly.core.neo4j :refer [with-connection execute-query]]
+              [clojure.string :as string]))
 
 (defn list-nodes
   ([conn node-type skip limit]
@@ -27,10 +27,14 @@
 
 ;;----------------------------------------------
 
-(defn find-star-by-id [celebirty-id]
+(defn find-node-by-id [node-id]
   "Creates Alias node for Celebrity node. Creates connection between"
   (with-connection #(execute-query % "START f = node(%s)
                                       MATCH (f)<-[*0..1]->(t)
-                                      RETURN id(f) as fid, labels(f) as flabel, f.name as fname, id(t) as tid, labels(t) as tlabel, t.name as tname" celebirty-id)))
+                                      RETURN id(f) as fid, labels(f) as flabel, f.name as fname, id(t) as tid, labels(t) as tlabel, t.name as tname" node-id)))
 
+;;----------------------------------------------
 
+(defn search-nodes [node-type name]
+    "Searches for node by tape and name"
+    (with-connection #(execute-query % (str "MATCH (n:" (string/capitalize node-type) ") WHERE lower(n.name) =~ lower('.*" name ".*') RETURN id(n) as id, n.name as name"))))
